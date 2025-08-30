@@ -50,30 +50,31 @@ L'AI genera il frontmatter in formato YAML, che include un blocco JSON-LD per i 
 ### **1\. Setup dell'Ambiente Locale**
 
 \# 1\. Clona questo repository  
+```
 git clone \<URL\_DEL\_TUO\_REPO\_SCRIPT\>  
 cd \<NOME\_CARTELLA\_SCRIPT\>
-
+```
 \# 2\. Crea un ambiente virtuale  
-python3 \-m venv venv
+`python3 \-m venv venv`
 
 \# 3\. Attiva l'ambiente virtuale  
-source venv/bin/activate
+`source venv/bin/activate`
 
 \# 4\. Installa le dipendenze  
-pip install \-r requirements.txt
+`pip install \-r requirements.txt`
 
 ### **2\. Configurazione delle Credenziali (.env)**
 
 Copia il file di esempio .env.example in un nuovo file chiamato .env e inserisci tutte le credenziali necessarie.
 
-cp .env.example .env
+`cp .env.example .env`
 
 Dovrai compilare i seguenti campi:
 
-* GEMINI\_API\_KEY: La tua chiave API per Google Gemini, ottenibile da [Google AI Studio](https://aistudio.google.com/app/apikey).  
-* SUPABASE\_URL: L'URL del tuo progetto Supabase.  
-* SUPABASE\_KEY: La anon public key del tuo progetto Supabase.  
-* GITHUB\_TOKEN: Un **Personal Access Token (classic)** di GitHub.  
+* `GEMINI\_API\_KEY`: La tua chiave API per Google Gemini, ottenibile da [Google AI Studio](https://aistudio.google.com/app/apikey).  
+* `SUPABASE\_URL`: L'URL del tuo progetto Supabase.  
+* `SUPABASE\_KEY`: La anon public key del tuo progetto Supabase.  
+* `GITHUB\_TOKEN`: Un **Personal Access Token (classic)** di GitHub.  
   * **Permessi richiesti**: Assicurati di abilitare l'intero scope repo per consentire allo script di clonare, creare fork e aprire Pull Request.
 
 ### **3\. Setup del Database Supabase**
@@ -94,16 +95,12 @@ Una volta completata la configurazione, puoi lanciare lo script dal terminale (c
 
 ### **Comando Base**
 
-python github\_main.py \--repo \<owner/repo-name\> \--branch \<branch-name\> \--folder \<path/to/folder\>
+`python github\_main.py \--repo \<owner/repo-name\> \--branch \<branch-name\> \--folder \<path/to/folder\>`
 
 ### **Argomenti**
 
-* \--repo (obbligatorio): Il repository GitHub su cui lavorare (es. pagopa/devportal-docs).  
-* \--branch (opzionale): Il branch specifico da analizzare. Se omesso, verrà utilizzato il branch di default del repository.  
-* \--folder (opzionale): La cartella specifica all'interno del branch da analizzare. Se omesso, verrà analizzato l'intero repository.  
-* \--force (opzionale): Un flag che, se presente, forza la sovrascrittura del frontmatter anche nei file che ne hanno già uno.
+* `\--repo` (obbligatorio): Il repository GitHub su cui lavorare (es. pagopa/devportal-docs).  
+* `\--branch` (opzionale): Il branch specifico da analizzare. Se omesso, verrà utilizzato il branch di default del repository.  
+* \`--folder` (opzionale): La cartella specifica all'interno del branch da analizzare. Se omesso, verrà analizzato l'intero repository.  
+* \`--force` (opzionale): Un flag che, se presente, forza la sovrascrittura del frontmatter anche nei file che ne hanno già uno.
 
-### **Esempio Pratico**
-
-\# Analizza la cartella 'avvisi/guida-tecnica' nel branch 'docs/from-gitbook' del repo 'pagopa/devportal-docs'  
-python github\_main.py \--repo pagopa/devportal-docs \--branch docs/from-gitbook \--folder avvisi/guida-tecnica
