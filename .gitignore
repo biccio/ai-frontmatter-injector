@@ -1,0 +1,15 @@
+.env
+
+# Ambiente virtuale Python
+venv/
+
+# File di cache di Python
+__pycache__/
+*.pyc
+
+# File temporanei di sistema
+.DS_Store
+
+# Directory temporanea per i cloni di Git
+/temp_git_clone_*
+```
