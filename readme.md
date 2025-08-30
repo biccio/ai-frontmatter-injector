@@ -101,6 +101,6 @@ Una volta completata la configurazione, puoi lanciare lo script dal terminale (c
 
 * `\--repo` (obbligatorio): Il repository GitHub su cui lavorare (es. pagopa/devportal-docs).  
 * `\--branch` (opzionale): Il branch specifico da analizzare. Se omesso, verrà utilizzato il branch di default del repository.  
-* \`--folder` (opzionale): La cartella specifica all'interno del branch da analizzare. Se omesso, verrà analizzato l'intero repository.  
-* \`--force` (opzionale): Un flag che, se presente, forza la sovrascrittura del frontmatter anche nei file che ne hanno già uno.
+* `\--folder` (opzionale): La cartella specifica all'interno del branch da analizzare. Se omesso, verrà analizzato l'intero repository.  
+* `\--force` (opzionale): Un flag che, se presente, forza la sovrascrittura del frontmatter anche nei file che ne hanno già uno.
 
