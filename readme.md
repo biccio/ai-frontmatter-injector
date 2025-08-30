@@ -1,6 +1,8 @@
 # **AI Frontmatter Injector per GitHub**
 
-Questo progetto è un'applicazione a riga di comando (CLI) in Python che automatizza l'arricchimento di documentazione tecnica in formato Markdown con metadati strutturati (frontmatter). Lo script opera direttamente su repository GitHub, analizzando i file, generando un frontmatter semanticamente ricco tramite AI e proponendo le modifiche tramite push diretto o Pull Request.
+Questo progetto è un'applicazione a riga di comando (CLI) in Python che automatizza l'arricchimento di documentazione tecnica in formato Markdown con metadati strutturati (frontmatter). L'obiettivo va oltre la SEO tradizionale: lo script implementa i principi della **Generative Engine Optimization (GEO)**, utilizzando lo standard **[Schema.org](https://schema.org)** per annotare i contenuti con metadati che li rendono pienamente leggibili e interpretabili dai moderni sistemi di Intelligenza Artificiale. Questo trasforma la documentazione in un'infrastruttura di conoscenza fondamentale per i Large Language Models (LLM) e le nuove esperienze di ricerca basate sull'IA.
+
+Lo script opera direttamente su repository GitHub, analizzando i file, generando un frontmatter semanticamente ricco tramite AI e proponendo le modifiche tramite push diretto o Pull Request.
 
 ## **Architettura e Funzionamento**
 
@@ -11,7 +13,7 @@ Il cuore del sistema si basa su un'architettura di **Retrieval-Augmented Generat
 * **Modello Generativo**: L'applicazione utilizza il modello **Gemini 1.5 Pro** tramite l'API di Google AI per l'analisi del testo e la generazione del blocco frontmatter.  
 * **Modello di Embedding**: Per la ricerca semantica, viene utilizzato il modello di embedding di Google per trasformare il testo in vettori numerici.
 
-### **2\. Retrieval: Supabase Vector DB**
+### **2\. Retrieval: Supabase Vector DB e Schema.org**
 
 * **Database Vettoriale**: Per fornire all'AI una conoscenza specifica e aggiornata, il sistema utilizza un database **Supabase** con l'estensione **PostgreSQL pgvector**.  
 * **Indicizzazione di Schema.org**: L'intero vocabolario di **Schema.org** viene processato, trasformato in vettori (embeddings) e indicizzato nel database Supabase.  
@@ -36,7 +38,7 @@ L'AI genera il frontmatter in formato YAML, che include un blocco JSON-LD per i 
 * **Gestire i permessi**:  
   * Se l'utente ha permessi di scrittura, crea un nuovo branch e fa il **push diretto**.  
   * Se l'utente non ha permessi, crea un **fork** del repository e apre una **Pull Request**.  
-* **Iniettare il frontmatter** nei file e committare le modifiche.
+* **Iniettare il frontmatter** nei file e committare le modifiche in modo selettivo, includendo solo i file effettivamente modificati.
 
 ## **Istruzioni per l'Installazione e la Configurazione**
 
@@ -104,4 +106,4 @@ python github\_main.py \--repo \<owner/repo-name\> \--branch \<branch-name\> \--
 ### **Esempio Pratico**
 
 \# Analizza la cartella 'avvisi/guida-tecnica' nel branch 'docs/from-gitbook' del repo 'pagopa/devportal-docs'  
-python github\_main.py \--repo pagopa/devportal-docs \--branch docs/from-gitbook \--folder avvisi/guida-tecnica  
+python github\_main.py \--repo pagopa/devportal-docs \--branch docs/from-gitbook \--folder avvisi/guida-tecnica
