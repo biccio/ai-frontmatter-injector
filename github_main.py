@@ -8,19 +8,22 @@ import sys
 from pathlib import Path
 import datetime
 
+# --- FUNZIONE AGGIORNATA per tracciare i file modificati ---
 def process_folder(root_path, generative_model, embedding_model_name, supabase, product_info, force):
     """
-    Scansiona una cartella, elabora ogni file Markdown e restituisce un riepilogo.
+    Scansiona una cartella, elabora ogni file Markdown e restituisce un riepilogo
+    e la lista dei percorsi dei file effettivamente aggiornati.
     """
     if isinstance(root_path, str):
         root_path = Path(root_path)
 
     markdown_files = file_handler.scan_markdown_files(root_path)
     summary = {"processed": 0, "updated": 0, "skipped": 0, "errors": 0}
+    updated_files_paths = [] # Lista per tracciare i file modificati
 
     if not markdown_files:
         print("Nessun file Markdown trovato nel percorso specificato.")
-        return summary
+        return summary, updated_files_paths
 
     prompt_template, kb_content = ai_core.load_prompt_and_knowledge_base()
 
@@ -61,6 +64,7 @@ def process_folder(root_path, generative_model, embedding_model_name, supabase, 
             if parsed_data:
                 if file_handler.update_file_with_frontmatter(file_path, parsed_data, force):
                     summary["updated"] += 1
+                    updated_files_paths.append(str(file_path)) # Aggiunge il file alla lista
                 else:
                     summary["skipped"] += 1
             else:
@@ -70,7 +74,7 @@ def process_folder(root_path, generative_model, embedding_model_name, supabase, 
             print(f"  -> Errore imprevisto durante l'elaborazione del file: {e}")
             summary["errors"] += 1
             
-    return summary
+    return summary, updated_files_paths
 
 def main():
     sys.stdout.reconfigure(encoding='utf-8')
@@ -128,7 +132,8 @@ def main():
         product_info = ai_core.load_product_info()
         generative_model, embedding_model_name, supabase = ai_core.configure_ai_models()
         
-        summary = process_folder(
+        # --- CHIAMATA AGGIORNATA ---
+        summary, updated_files = process_folder(
             root_path=processing_path,
             generative_model=generative_model,
             embedding_model_name=embedding_model_name,
@@ -142,7 +147,8 @@ def main():
             return
 
         print("\n[+] Finalizzazione delle modifiche su Git...")
-        if handler.commit_and_push(temp_dir, branch_name, commit_message, fork_url=fork_url):
+        # --- CHIAMATA AGGIORNATA ---
+        if handler.commit_and_push(temp_dir, branch_name, commit_message, updated_files, fork_url=fork_url):
             handler.create_pull_request(
                 upstream_repo=upstream_repo, head_branch=branch_name, 
                 base_branch=source_branch, title=pr_title, body=pr_body, is_fork=is_fork

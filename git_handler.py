@@ -30,50 +30,94 @@ class GitHandler:
                 return self.g.get_repo(f"{self.user.login}/{upstream_repo.name}")
             raise e
     
-    def _run_command(self, command, working_dir):
-        """Helper per eseguire comandi di sistema e gestire errori."""
+    def clone_repo(self, repo_url, path, branch):
+        print(f"  -> Clonazione del branch '{branch}' da {repo_url}...")
         try:
-            subprocess.run(command, cwd=working_dir, check=True, capture_output=True, text=True)
+            subprocess.run(
+                ["git", "clone", "--branch", branch, repo_url, path],
+                check=True, capture_output=True
+            )
+        except subprocess.CalledProcessError as e:
+            print(f"Errore standard:\n{e.stderr.decode('utf-8', errors='ignore')}")
+            raise SystemExit("Impossibile clonare il repository.")
+
+    def setup_and_sync_repo(self, repo_path, base_branch, fork_url=None):
+        print(f"  -> Sincronizzazione forzata del branch di base '{base_branch}' con 'origin'...")
+        try:
+            if fork_url:
+                print(f"  -> Configurazione del remote 'fork' per il push: {fork_url}")
+                subprocess.run(["git", "remote", "add", "fork", fork_url], cwd=repo_path, check=True, capture_output=True)
+            
+            print("  -> Fetch da 'origin'...")
+            subprocess.run(["git", "fetch", "origin"], cwd=repo_path, check=True, capture_output=True)
+            
+            print(f"  -> Checkout del branch di base '{base_branch}'...")
+            subprocess.run(["git", "checkout", base_branch], cwd=repo_path, check=True, capture_output=True)
+
+            print(f"  -> Reset forzato di '{base_branch}' a 'origin/{base_branch}'...")
+            subprocess.run(
+                ["git", "reset", "--hard", f"origin/{base_branch}"],
+                cwd=repo_path, check=True, capture_output=True
+            )
+            print("  -> Sincronizzazione completata. La base è ora pulita.")
+
+        except subprocess.CalledProcessError as e:
+            print("\n--- ERRORE DURANTE LA SINCRONIZZAZIONE ---")
+            print(f"Comando fallito: {' '.join(e.cmd)}")
+            print(f"Errore standard:\n{e.stderr.decode('utf-8', errors='ignore')}")
+            print("---------------------------------------")
+            raise SystemExit("Impossibile sincronizzare il repository locale.")
+
+    def create_branch(self, repo_path, branch_name):
+        print(f"  -> Creazione del branch di lavoro: '{branch_name}'")
+        try:
+            subprocess.run(
+                ["git", "checkout", "-b", branch_name],
+                cwd=repo_path, check=True, capture_output=True
+            )
+        except subprocess.CalledProcessError as e:
+            print("\n--- ERRORE DURANTE LA CREAZIONE DEL BRANCH ---")
+            print(f"Errore standard:\n{e.stderr.decode('utf-8', errors='ignore')}")
+            print("-----------------------------------------")
+            raise SystemExit("Impossibile creare il branch di lavoro.")
+
+    # --- FUNZIONE AGGIORNATA per un commit selettivo ---
+    def commit_and_push(self, repo_path: str, branch_name: str, message: str, updated_files: list, fork_url: str = None) -> bool:
+        try:
+            if not updated_files:
+                print("  -> Nessun file è stato modificato, nessun commit da creare.")
+                return False
+
+            print("  -> Aggiunta selettiva dei file modificati...")
+            for file_path in updated_files:
+                # Usa percorsi relativi per git add
+                relative_path = os.path.relpath(file_path, repo_path)
+                subprocess.run(["git", "add", relative_path], cwd=repo_path, check=True, capture_output=True)
+            
+            print("  -> Esecuzione del commit...")
+            subprocess.run(["git", "commit", "-m", message], cwd=repo_path, check=True, capture_output=True)
+            
+            remote_to_push = 'fork' if fork_url else 'origin'
+            print(f"  -> Push delle modifiche sul remote '{remote_to_push}' (branch: '{branch_name}')...")
+            
+            subprocess.run(
+                ["git", "push", "-u", remote_to_push, branch_name],
+                cwd=repo_path, check=True, capture_output=True
+            )
+            
+            print("  -> Push completato con successo.")
+            return True
         except subprocess.CalledProcessError as e:
             print("\n--- ERRORE DURANTE L'ESECUZIONE DI GIT ---")
             print(f"Comando fallito: {' '.join(e.cmd)}")
-            print(f"Errore standard:\n{e.stderr}")
+            print(f"Errore standard:\n{e.stderr.decode('utf-8', errors='ignore')}")
             print("------------------------------------")
-            raise SystemExit("Operazione Git fallita.")
+            return False
+        except Exception as e:
+            print(f"  -> Errore imprevisto durante il commit/push: {e}")
+            return False
 
-    def clone_repo(self, repo_url, path, branch):
-        print(f"  -> Clonazione del branch '{branch}' da {repo_url}...")
-        self._run_command(["git", "clone", "--branch", branch, repo_url, path], working_dir=".")
-
-    def setup_and_sync_repo(self, path, base_branch, fork_url=None):
-        print(f"  -> Sincronizzazione forzata del branch di base '{base_branch}'...")
-        if fork_url:
-            print(f"  -> Aggiunta del remote 'fork': {fork_url}")
-            self._run_command(["git", "remote", "add", "fork", fork_url], working_dir=path)
-        
-        print("  -> Fetch da 'origin'...")
-        self._run_command(["git", "fetch", "origin"], working_dir=path)
-        
-        print(f"  -> Reset forzato di '{base_branch}' a 'origin/{base_branch}'...")
-        self._run_command(["git", "checkout", base_branch], working_dir=path)
-        self._run_command(["git", "reset", "--hard", f"origin/{base_branch}"], working_dir=path)
-        print("  -> Sincronizzazione completata. La base è ora pulita.")
-
-    def create_branch(self, path, branch_name):
-        print(f"  -> Creazione del branch di lavoro: '{branch_name}'")
-        self._run_command(["git", "checkout", "-b", branch_name], working_dir=path)
-
-    def commit_and_push(self, path, branch_name, message, fork_url=None):
-        print("  -> Aggiunta e commit delle modifiche...")
-        self._run_command(["git", "add", "."], working_dir=path)
-        self._run_command(["git", "commit", "-m", message], working_dir=path)
-        
-        remote_to_push = 'fork' if fork_url else 'origin'
-        print(f"  -> Push delle modifiche sul remote '{remote_to_push}'...")
-        self._run_command(["git", "push", "-u", remote_to_push, branch_name], working_dir=path)
-        return True
-
-    def create_pull_request(self, upstream_repo, head_branch, base_branch, title, body, is_fork):
+    def create_pull_request(self, upstream_repo, head_branch, base_branch, title, body, is_fork: bool):
         head_ref = f"{self.user.login}:{head_branch}" if is_fork else head_branch
         
         pulls = upstream_repo.get_pulls(state='open', head=head_ref, base=base_branch)
