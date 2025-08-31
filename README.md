@@ -81,9 +81,9 @@ You will need to fill in the following fields:
 
 1. **Create a Project**: Go to [supabase.com](https://supabase.com) and create a new project.  
 2. **Enable pgvector**: In the project dashboard, go to Database \> Extensions and enable the vector extension.  
-3. **Create the Table**: Go to SQL Editor, open a "New query", and paste and run the contents of the supabase\_setup.sql file provided in this project.  
-4. **Index the Knowledge Base**: Run the indexer.py script to populate the database. This will read the files in the `knowledge_base` folder, generate embeddings, and upload them to Supabase.  
-   python indexer.py
+3. **Create the Table**: Go to SQL Editor, open a "New query", and paste and run the contents of the `supabase\_setup.sql` file provided in this project.  
+4. **Index the Knowledge Base**: Run the `indexer.py` script to populate the database. This will read the files in the `knowledge_base` folder, generate embeddings, and upload them to Supabase.  
+   `python indexer.py`
 
 ### **4. Product Configuration**
 
