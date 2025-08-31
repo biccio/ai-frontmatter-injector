@@ -1,106 +1,109 @@
-# **AI Frontmatter Injector per GitHub**
+# **AI Frontmatter Injector for GitHub**
 
-Questo progetto è un'applicazione a riga di comando (CLI) in Python che automatizza l'arricchimento di documentazione tecnica in formato Markdown con metadati strutturati (frontmatter). L'obiettivo va oltre la SEO tradizionale: lo script implementa i principi della **Generative Engine Optimization (GEO)**, utilizzando lo standard **[Schema.org](https://schema.org)** per annotare i contenuti con metadati che li rendono pienamente leggibili e interpretabili dai moderni sistemi di Intelligenza Artificiale. Questo trasforma la documentazione in un'infrastruttura di conoscenza fondamentale per i Large Language Models (LLM) e le nuove esperienze di ricerca basate sull'IA.
+This project is a Python command-line interface (CLI) application that automates the process of enriching technical documentation in Markdown format with structured metadata (frontmatter). The goal goes beyond traditional SEO: the script implements the principles of **Generative Engine Optimization (GEO)**, using the **Schema.org** standard to annotate content with metadata that makes it fully legible and interpretable by modern Artificial Intelligence systems. This transforms the documentation into a foundational knowledge infrastructure for Large Language Models (LLMs) and new AI-driven search experiences.
 
-Lo script opera direttamente su repository GitHub, analizzando i file, generando un frontmatter semanticamente ricco tramite AI e proponendo le modifiche tramite push diretto o Pull Request.
+The script operates directly on GitHub repositories by analyzing files, generating semantically rich frontmatter via AI, and proposing the changes through either a direct push or a Pull Request.
 
-## **Architettura e Funzionamento**
+## **Architecture and How It Works**
 
-Il cuore del sistema si basa su un'architettura di **Retrieval-Augmented Generation (RAG)** per garantire che l'output dell'intelligenza artificiale sia accurato, contestuale e aderente a standard specifici.
+The core of the system is based on a **Retrieval-Augmented Generation (RAG)** architecture to ensure that the AI's output is accurate, contextual, and compliant with specific standards.
 
 ### **1\. AI Core: Google Gemini**
 
-* **Modello Generativo**: L'applicazione utilizza il modello **Gemini 1.5 Pro** tramite l'API di Google AI per l'analisi del testo e la generazione del blocco frontmatter.  
-* **Modello di Embedding**: Per la ricerca semantica, viene utilizzato il modello di embedding di Google per trasformare il testo in vettori numerici.
+* **Generative Model**: The application uses the **Gemini 1.5 Pro** model via the Google AI API for text analysis and frontmatter block generation.  
+* **Embedding Model**: For semantic search, Google's embedding model is used to transform text into numerical vectors.
 
-### **2\. Retrieval: Supabase Vector DB e Schema.org**
+### **2\. Retrieval: Supabase Vector DB and Schema.org**
 
-* **Database Vettoriale**: Per fornire all'AI una conoscenza specifica e aggiornata, il sistema utilizza un database **Supabase** con l'estensione **PostgreSQL pgvector**.  
-* **Indicizzazione di Schema.org**: L'intero vocabolario di **Schema.org** viene processato, trasformato in vettori (embeddings) e indicizzato nel database Supabase.  
-* **Ricerca Semantica**: Quando si analizza un file Markdown, il suo contenuto viene usato per eseguire una ricerca di similarità vettoriale sul database. Questo processo recupera i tipi e le proprietà di Schema.org più pertinenti al contesto del file, che verranno poi forniti all'AI.
+* **Vector Database**: To provide the AI with specific and up-to-date knowledge, the system uses a **Supabase** database with the **PostgreSQL pgvector** extension.  
+* **Schema.org Indexing**: The entire **Schema.org** vocabulary is processed, converted into vectors (embeddings), and indexed in the Supabase database.  
+* **Semantic Search**: When a Markdown file is analyzed, its content is used to perform a vector similarity search on the database. This process retrieves the most relevant Schema.org types and properties for the file's context, which are then provided to the AI.
 
-### **3\. Augmentation: Costruzione del Contesto**
+### **3\. Augmentation: Building the Context**
 
-Prima di interrogare l'AI, lo script costruisce un prompt dettagliato e "aumentato" che combina diverse fonti di informazione:
+Before querying the AI, the script builds a detailed and "augmented" prompt that combines several sources of information:
 
-* Un **prompt master** che definisce il ruolo, l'obiettivo e le regole di output per l'AI.  
-* Una **knowledge base locale** (/knowledge\_base) contenente documentazione specifica (es. il manuale del framework Diataxis) per contestualizzare la documentazione da analizzare.  
-* I **dati recuperati da Supabase** (le definizioni di Schema.org pertinenti).  
-* Il **contenuto del file Markdown** da elaborare.  
-* Le **informazioni sul prodotto** (nome e versione) da un file di configurazione.
+* A **master prompt** that defines the AI's role, objective, and output rules.  
+* A **local knowledge base** (/knowledge\_base) containing specific documentation (e.g., the Diataxis framework manual) to contextualize the documentation being analyzed.  
+* The **data retrieved from Supabase** (the relevant Schema.org definitions).  
+* The **content of the Markdown file** to be processed.  
+* **Product information** (name and version) from a configuration file.
 
-### **4\. Generation & Integrazione GitHub**
+### **4\. Generation & GitHub Integration**
 
-L'AI genera il frontmatter in formato YAML, che include un blocco JSON-LD per i metadati di Schema.org. Lo script si occupa quindi di:
+The AI generates the frontmatter in YAML format, which includes a JSON-LD block for Schema.org metadata. The script then handles the following:
 
-* **Clonare il repository** target in un ambiente temporaneo.  
-* **Sincronizzare la cronologia** per garantire che le Pull Request siano "pulite" e contengano un solo commit.  
-* **Gestire i permessi**:  
-  * Se l'utente ha permessi di scrittura, crea un nuovo branch e fa il **push diretto**.  
-  * Se l'utente non ha permessi, crea un **fork** del repository e apre una **Pull Request**.  
-* **Iniettare il frontmatter** nei file e committare le modifiche in modo selettivo, includendo solo i file effettivamente modificati.
+* **Cloning the repository** into a temporary environment.  
+* **Synchronizing the history** to ensure Pull Requests are "clean" and contain only a single commit.  
+* **Handling permissions**:  
+  * If the user has write permissions, it creates a new branch and performs a **direct push**.  
+  * If the user does not have permissions, it creates a **fork** of the repository and opens a **Pull Request**.  
+* **Injecting the frontmatter** into the files and selectively committing the changes, including only the files that were actually modified.
 
-## **Istruzioni per l'Installazione e la Configurazione**
+## **Installation and Configuration Instructions**
 
-### **Prerequisiti**
+### **Prerequisites**
 
 * Python 3.9+  
-* Git installato sulla macchina locale.
+* Git installed on the local machine.
 
-### **1\. Setup dell'Ambiente Locale**
+### **1\. Local Environment Setup**
 
-\# 1\. Clona questo repository  
-```
-git clone \<URL\_DEL\_TUO\_REPO\_SCRIPT\>  
-cd \<NOME\_CARTELLA\_SCRIPT\>
-```
-\# 2\. Crea un ambiente virtuale  
-`python3 \-m venv venv`
+\# 1\. Clone this repository  
+git clone \<URL\_OF\_YOUR\_SCRIPT\_REPO\>  
+cd \<SCRIPT\_FOLDER\_NAME\>
 
-\# 3\. Attiva l'ambiente virtuale  
-`source venv/bin/activate`
+\# 2\. Create a virtual environment  
+python3 \-m venv venv
 
-\# 4\. Installa le dipendenze  
-`pip install \-r requirements.txt`
+\# 3\. Activate the virtual environment  
+source venv/bin/activate
 
-### **2\. Configurazione delle Credenziali (.env)**
+\# 4\. Install dependencies  
+pip install \-r requirements.txt
 
-Copia il file di esempio .env.example in un nuovo file chiamato .env e inserisci tutte le credenziali necessarie.
+### **2\. Credential Configuration (.env)**
 
-`cp .env.example .env`
+Copy the example file .env.example to a new file named .env and enter all the required credentials.
 
-Dovrai compilare i seguenti campi:
+cp .env.example .env
 
-* `GEMINI\_API\_KEY`: La tua chiave API per Google Gemini, ottenibile da [Google AI Studio](https://aistudio.google.com/app/apikey).  
-* `SUPABASE\_URL`: L'URL del tuo progetto Supabase.  
-* `SUPABASE\_KEY`: La anon public key del tuo progetto Supabase.  
-* `GITHUB\_TOKEN`: Un **Personal Access Token (classic)** di GitHub.  
-  * **Permessi richiesti**: Assicurati di abilitare l'intero scope repo per consentire allo script di clonare, creare fork e aprire Pull Request.
+You will need to fill in the following fields:
 
-### **3\. Setup del Database Supabase**
+* GEMINI\_API\_KEY: Your API key for Google Gemini, obtainable from [Google AI Studio](https://aistudio.google.com/app/apikey).  
+* SUPABASE\_URL: The URL of your Supabase project.  
+* SUPABASE\_KEY: The anon public key of your Supabase project.  
+* GITHUB\_TOKEN: A **Personal Access Token (classic)** from GitHub.  
+  * **Required Permissions**: Ensure you enable the entire repo scope to allow the script to clone, create forks, and open Pull Requests.
 
-1. **Crea un Progetto**: Vai su [supabase.com](https://supabase.com) e crea un nuovo progetto.  
-2. **Abilita pgvector**: Nel pannello del progetto, vai su Database \> Extensions e abilita l'estensione vector.  
-3. **Crea la Tabella**: Vai su SQL Editor, apri una "New query" e incolla ed esegui il contenuto del file supabase\_setup.sql fornito in questo progetto.  
-4. **Indicizza la Knowledge Base**: Esegui lo script indexer.py per popolare il database. Questo leggerà i file nella cartella /knowledge\_base, genererà gli embeddings e li caricherà su Supabase.  
+### **3\. Supabase Database Setup**
+
+1. **Create a Project**: Go to [supabase.com](https://supabase.com) and create a new project.  
+2. **Enable pgvector**: In the project dashboard, go to Database \> Extensions and enable the vector extension.  
+3. **Create the Table**: Go to SQL Editor, open a "New query", and paste and run the contents of the supabase\_setup.sql file provided in this project.  
+4. **Index the Knowledge Base**: Run the indexer.py script to populate the database. This will read the files in the /knowledge\_base folder, generate embeddings, and upload them to Supabase.  
    python indexer.py
 
-### **4\. Configurazione del Prodotto**
+### **4\. Product Configuration**
 
-Apri il file config/product\_info.json e inserisci il nome e la versione del prodotto che l'AI dovrà usare nel frontmatter.
+Open the config/product\_info.json file and enter the product name and version that the AI should use in the frontmatter.
 
-## **Come Utilizzare lo Script**
+## **How to Use the Script**
 
-Una volta completata la configurazione, puoi lanciare lo script dal terminale (con l'ambiente virtuale attivo).
+Once the configuration is complete, you can run the script from the terminal (with the virtual environment activated).
 
-### **Comando Base**
+### **Base Command**
 
-`python github\_main.py \--repo \<owner/repo-name\> \--branch \<branch-name\> \--folder \<path/to/folder\>`
+python github\_main.py \--repo \<owner/repo-name\> \--branch \<branch-name\> \--folder \<path/to/folder\>
 
-### **Argomenti**
+### **Arguments**
 
-* `\--repo` (obbligatorio): Il repository GitHub su cui lavorare (es. pagopa/devportal-docs).  
-* `\--branch` (opzionale): Il branch specifico da analizzare. Se omesso, verrà utilizzato il branch di default del repository.  
-* `\--folder` (opzionale): La cartella specifica all'interno del branch da analizzare. Se omesso, verrà analizzato l'intero repository.  
-* `\--force` (opzionale): Un flag che, se presente, forza la sovrascrittura del frontmatter anche nei file che ne hanno già uno.
+* \--repo (required): The GitHub repository to work on (e.g., pagopa/devportal-docs).  
+* \--branch (optional): The specific branch to analyze. If omitted, the repository's default branch will be used.  
+* \--folder (optional): The specific folder within the branch to analyze. If omitted, the entire repository will be analyzed.  
+* \--force (optional): A flag that, if present, forces the script to overwrite frontmatter even in files that already have it.
 
+### **Practical Example**
+
+\# Analyze the 'avvisi/guida-tecnica' folder in the 'docs/from-gitbook' branch of the 'pagopa/devportal-docs' repo  
+python github\_main.py \--repo pagopa/devportal-docs \--branch docs/from-gitbook \--folder avvisi/guida-tecnica  
