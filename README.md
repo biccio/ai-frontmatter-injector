@@ -87,7 +87,7 @@ You will need to fill in the following fields:
 
 ### **4. Product Configuration**
 
-Open the config/product_info.json file and enter the product name and version that the AI should use in the frontmatter.
+Open the `config/product_info.json` file and enter the product name and version that the AI should use in the frontmatter.
 
 ## **How to Use the Script**
 
