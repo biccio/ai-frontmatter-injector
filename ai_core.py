@@ -57,7 +57,7 @@ def configure_ai_models() -> tuple[genai.GenerativeModel, str, Client]:
         raise SystemExit("Errore: Credenziali Supabase non trovate.")
     supabase = create_client(url, key)
     
-    generative_model = genai.GenerativeModel('gemini-1.5-pro')
+    generative_model = genai.GenerativeModel('gemini-2.5-pro')
     embedding_model_name = 'models/embedding-001'
     
     return generative_model, embedding_model_name, supabase

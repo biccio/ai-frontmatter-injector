@@ -10,7 +10,7 @@ The core of the system is based on a **Retrieval-Augmented Generation (RAG)** ar
 
 ### **1. AI Core: Google Gemini**
 
-* **Generative Model**: The application uses the **Gemini 1.5 Pro** model via the Google AI API for text analysis and frontmatter block generation.  
+* **Generative Model**: The application uses the **Gemini 2.5 Pro** model via the Google AI API for text analysis and frontmatter block generation.  
 * **Embedding Model**: For semantic search, Google's embedding model is used to transform text into numerical vectors.
 
 ### **2. Retrieval: Supabase Vector DB and Schema.org**
