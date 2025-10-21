@@ -1,43 +1,58 @@
-# Principi Guida
+# Mappatura Diataxis PagoPA (v2.4)
 
-Framework Diataxis: È il fondamento del tuo lavoro,che prevede applicazione rigorosa della mappatura definita di seguito per organizzare ogni contenuto.
+Questo documento definisce i principi e la mappatura tassativa del framework Diataxis applicata al sistema documentale di PagoPA. Serve come guida di riferimento per la generazione e la strutturazione di tutti i contenuti tecnici.
 
-Focus sull'Utente: Il pubblico è composto da partner tecnologici e sviluppatori. Sono tecnicamente competenti ma cercano soluzioni rapide e pratiche. I contenuti non sono autoreferenziali e devono andare dritti al punto.
+## Principi Guida
 
-Content Design: Vengono applicate le migliori pratiche di technical writing e content design per garantire massima leggibilità, coerenza e usabilità.
+1.  **Framework Diataxis (v2.4)**: È il fondamento per organizzare i contenuti. La mappatura definita di seguito è rigorosa e specifica per PagoPA.
+2.  **Pubblico (User-Centric)**: Il pubblico è composto da **sviluppatori, architetti software e analisti tecnici** dei partner tecnologici. Sono tecnicamente competenti e orientati al risultato (*outcome-driven*).
+3.  **Mentalità dell'Utente**: Gli utenti "scansionano" la documentazione per trovare soluzioni rapide a problemi specifici. Non leggono la documentazione per intero.
+4.  **Stile (Action-Oriented)**: Il tono è formale ma accessibile.
+    * **Voce**: Usa la seconda persona ("tu"). Esempio: "Per ottenere il token, devi inviare una richiesta..."
+    * **Titoli**: I titoli dei `Tutorial` e dei `Casi d'uso` iniziano sempre con un verbo all'infinito (es. "Inviare una notifica").
+    * **Forma**: Usa la forma attiva.
+5.  **Progressive Disclosure**: L'utente riceve solo le informazioni di cui ha bisogno in quel momento. I dettagli tecnici (parametri, errori) non sono duplicati, ma **linkati** dai `Tutorial` e `Casi d'uso` ai `Riferimenti Tecnici`.
 
-Inclusione Aspetti Normativi: I documenti di partenza contengono elementi normativi. Devono rimanere dove richiesto per legge (tipicamente nella sezione "Il prodotto"), anche se non sono di interesse primario per l'utente finale.
+## Struttura dei Contenuti (Mapping Diataxis v2.4)
 
-# Struttura dei Contenuti (Mapping Diataxis)
+Mapping tassativo tra le sezioni del sistema documentale PagoPA e il framework Diataxis.
 
-Mapping tassativo tra le tipologie di contenuto del framework Diataxis e il sistema documentale di PagoPA:
+---
 
-**Explanation → il-prodotto:**
+### Per iniziare
 
-Scopo: Descrive il prodotto nei suoi aspetti concettuali e strategici. Include obiettivi, contesto normativo e funzionamento generale.
+* **Mappatura Diataxis**: `Explanation` + `How-To` (essenziali)
+* **Scopo**: Funge da **onboarding obbligatorio** per i nuovi utenti. Non è un sommario, ma un percorso guidato per diventare operativi.
+* **Contenuto**:
+    1.  **Panoramica (Explanation)**: Spiega cos'è il prodotto e a cosa serve.
+    2.  **Tutorial di base (How-To)**: Una sequenza dei primissimi passi indispensabili (es. ottenere credenziali, configurare l'ambiente, effettuare la prima chiamata API).
+* **Domanda Utente**: "Sono nuovo, da dove comincio per essere operativo il prima possibile?"
 
-Contenuto: Spiegazioni di alto livello, architettura, principi di design e normative.
+---
 
-**Reference → guida-tecnica:**
+### Tutorial
 
-Scopo: Fornisce una descrizione tecnica dettagliata e strutturata delle componenti software (es. API, standard, modelli dati).
+* **Mappatura Diataxis**: `How-To Guide`
+* **Scopo**: È il **catalogo delle azioni**. Fornisce una raccolta di guide procedurali, atomiche e focalizzate su un **singolo task**.
+* **Contenuto**: Guide step-by-step per risolvere un problema specifico (es. "Creare un avviso", "Verificare uno stato").
+* **Struttura**: Obiettivo chiaro, Prerequisiti, Passaggi numerati.
+* **Domanda Utente**: "Come faccio a eseguire un task specifico?"
 
-Contenuto: Specifiche di API (endpoint, parametri, risposte), schemi, enumerazioni, guide di configurazione. Deve essere accurata e fungere da "enciclopedia" del prodotto.
+---
 
+### Riferimenti Tecnici
 
-**How-To → tutorial:**
+* **Mappatura Diataxis**: `Reference`
+* **Scopo**: È l'**enciclopedia dei dettagli** tecnici. Contiene le specifiche precise e funge da unica fonte di verità.
+* **Contenuto**: Documentazione delle API (endpoint, parametri, body), modelli di dati, schemi, codici di errore, enumerazioni.
+* **Utilizzo**: Non è pensata per essere letta sequenzialmente, ma per essere **consultata tramite link** diretti presenti nei `Tutorial` e nei `Casi d'uso`.
+* **Domanda Utente**: "Quali sono le specifiche esatte del parametro X o dell'errore Y?"
 
-Scopo: Guida l'utente passo-passo nel completamento di un task specifico (es. "Come generare un voucher", "Come effettuare l'adesione").
+---
 
-Struttura: Breve introduzione di contesto seguita da una sequenza numerata di passaggi (Step 1, Step 2, ...). Ogni passaggio deve essere un'azione chiara e concreta.
+### Casi d'uso
 
-Linking: Sono presenti link diretti alle sezioni pertinenti della guida-tecnica per approfondimenti. I link usano la versione "slug" del titolo di riferimento (es. /guida-tecnica/gestione-voucher/).
-
-
-**Tutorial → casi-duso:**
-
-Scopo: Mostra come combinare più task per risolvere un problema reale e complesso. Rappresenta l'applicazione pratica dei tutorial in uno scenario realistico.
-
-Contenuto: Descrizione di un problema specifico e di come le funzionalità del prodotto possono essere orchestrate per risolverlo.
-
-Linking: per ciascun task è presente un link ai relativi tutorial.
+* **Mappatura Diataxis**: `Tutorial` (nel senso originale di Diataxis: un percorso di apprendimento end-to-end)
+* **Scopo**: Mostra come il prodotto risolve **scenari di business reali e complessi**, dall'inizio alla fine.
+* **Contenuto**: Percorsi narrativi che spiegano le logiche di un intero processo. **Orchestrano e combinano più `Tutorial` (How-To)** per raggiungere un obiettivo di business completo (es. "Gestire l'intero processo di pagamento di un avviso").
+* **Domanda Utente**: "Mostrami un esempio completo di come usare il prodotto per gestire l'intero processo X."
