@@ -12,4 +12,6 @@ __pycache__/
 
 # Directory temporanea per i cloni di Git
 /temp_git_clone_*
-```
+
+# Archivio locale di ChromaDB
+chroma_db/

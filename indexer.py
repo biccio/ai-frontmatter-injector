@@ -1,20 +1,11 @@
-import os
-import json
-from dotenv import load_dotenv
-from supabase import create_client, Client
-import google.generativeai as genai
 from pathlib import Path
+
+import chromadb
 import rdflib
+from dotenv import load_dotenv
 from rdflib.namespace import RDFS, RDF
 
-# Configura il modello di embedding
-def configure_embedding_model():
-    """Configura e restituisce il modello di embedding di Gemini."""
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise SystemExit("Errore: GEMINI_API_KEY non trovata in .env")
-    genai.configure(api_key=api_key)
-    return 'models/embedding-001' # Modello di embedding consigliato
+import ai_core
 
 def parse_schema_org_rdf(file_path: Path) -> dict:
     """
@@ -94,24 +85,22 @@ def parse_schema_org_rdf(file_path: Path) -> dict:
 
 def main():
     """
-    Script per leggere la knowledge base, generare embeddings e caricarli su Supabase.
+    Script per leggere la knowledge base, generare embeddings e indicizzarli su ChromaDB.
     """
     load_dotenv()
 
-    # 1. Connessione a Supabase
-    url: str = os.environ.get("SUPABASE_URL")
-    key: str = os.environ.get("SUPABASE_KEY")
-    if not url or not key:
-        raise SystemExit("Errore: SUPABASE_URL o SUPABASE_KEY non trovate in .env")
-    
-    supabase: Client = create_client(url, key)
-    print("Connesso a Supabase.")
+    print("Configurazione della funzione di embedding...")
+    embedding_provider = ai_core.resolve_embedding_provider()
+    embedding_function = ai_core.configure_embedding_function(embedding_provider)
 
-    # 2. Configurazione del modello AI per gli embeddings
-    embedding_model = configure_embedding_model()
-    print(f"Modello di embedding '{embedding_model}' configurato.")
+    client = chromadb.PersistentClient(path=ai_core.get_chroma_persist_directory())
+    collection = client.get_or_create_collection(
+        name="schema_embeddings",
+        embedding_function=embedding_function,
+    )
+    print(f"Collection 'schema_embeddings' pronta su ChromaDB (provider embedding: {embedding_provider}).")
 
-    # 3. Lettura e parsing del file RDF di schema.org
+    # Lettura e parsing del file RDF di schema.org
     kb_path = Path("knowledge_base")
     # Cerca un file che contenga 'schemaorg' con estensioni .jsonld o .rdf
     schema_file = None
@@ -131,33 +120,22 @@ def main():
 
     print(f"Inizio l'indicizzazione di {len(schema_data)} schemi...")
 
-    # 4. Generazione embeddings e caricamento
+    # Generazione embeddings e caricamento
     for schema_name, schema_info in schema_data.items():
         # Prepara il testo da indicizzare
         description = schema_info.get("description", "")
         properties = ", ".join(schema_info.get("properties", {}).keys())
         content_to_embed = f"Schema: {schema_name}. Descrizione: {description}. Proprietà: {properties}."
-        
-        print(f"  - Generazione embedding per '{schema_name}'...")
-        
-        # Genera l'embedding
-        embedding_result = genai.embed_content(
-            model=embedding_model,
-            content=content_to_embed,
-            task_type="RETRIEVAL_DOCUMENT" # Importante per la ricerca
-        )
-        embedding = embedding_result['embedding']
 
-        # Prepara il dato da inserire
-        data_to_insert = {
-            "schema_name": schema_name,
-            "content": content_to_embed,
-            "embedding": embedding
-        }
+        print(f"  - Indicizzazione di '{schema_name}'...")
 
-        # Inserisce nel database
+        # Inserisce/aggiorna nel database vettoriale
         try:
-            supabase.table("schema_embeddings").insert(data_to_insert).execute()
+            collection.upsert(
+                ids=[schema_name],
+                documents=[content_to_embed],
+                metadatas=[{"schema_name": schema_name}],
+            )
             print(f"    -> '{schema_name}' indicizzato con successo.")
         except Exception as e:
             print(f"    -> Errore durante l'inserimento di '{schema_name}': {e}")

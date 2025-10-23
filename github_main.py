@@ -9,7 +9,7 @@ from pathlib import Path
 import datetime
 
 # --- FUNZIONE AGGIORNATA per tracciare i file modificati ---
-def process_folder(root_path, generative_model, embedding_model_name, supabase, product_info, force):
+def process_folder(root_path, llm_config, schema_collection, product_info, force):
     """
     Scansiona una cartella, elabora ogni file Markdown e restituisce un riepilogo
     e la lista dei percorsi dei file effettivamente aggiornati.
@@ -41,13 +41,13 @@ def process_folder(root_path, generative_model, embedding_model_name, supabase, 
                 summary["skipped"] += 1
                 continue
             
-            print("  -> Ricerca schemi pertinenti su Supabase...")
-            schema_context = ai_core.retrieve_relevant_schemas(supabase, embedding_model_name, content)
+            print("  -> Ricerca schemi pertinenti su ChromaDB...")
+            schema_context = ai_core.retrieve_relevant_schemas(schema_collection, content)
             print("  -> Contesto recuperato.")
 
             print("  -> Generazione frontmatter con AI...")
             generated_yaml = ai_core.generate_frontmatter(
-                model=generative_model,
+                llm_config=llm_config,
                 prompt_template=prompt_template,
                 schema_context=schema_context,
                 kb_content=kb_content,
@@ -130,14 +130,16 @@ def main():
 
         print("\n[+] Caricamento risorse e avvio elaborazione file AI...")
         product_info = ai_core.load_product_info()
-        generative_model, embedding_model_name, supabase = ai_core.configure_ai_models()
-        
+        llm_config, schema_collection = ai_core.configure_ai_models()
+        print(f"[+] Modello LLM selezionato: {llm_config.provider} ({llm_config.model})")
+        print(f"[+] Provider embeddings: {llm_config.embedding_provider}")
+        print(f"[+] Archivio ChromaDB: {ai_core.get_chroma_persist_directory()}")
+
         # --- CHIAMATA AGGIORNATA ---
         summary, updated_files = process_folder(
             root_path=processing_path,
-            generative_model=generative_model,
-            embedding_model_name=embedding_model_name,
-            supabase=supabase,
+            llm_config=llm_config,
+            schema_collection=schema_collection,
             product_info=product_info,
             force=args.force
         )
