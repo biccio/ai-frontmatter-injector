@@ -2,7 +2,9 @@ google-generativeai
 python-frontmatter
 PyYAML
 python-dotenv
-supabase
+chromadb
+openai
+anthropic
 rdflib
 PyGithub
 GitPython>=3.1.30 # Specifica una versione minima per la compatibilità

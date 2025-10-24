@@ -21,11 +21,17 @@ def main():
     if args.dry_run:
         print("Modalità DRY-RUN: Nessun file verrà modificato.")
 
+    total_files = files_processed = files_updated = files_skipped = files_failed = 0
+    markdown_files = []
+
     try:
         print("[+] Caricamento risorse e configurazione AI...")
         prompt_template, kb_content = ai_core.load_prompt_and_knowledge_base()
         product_info = ai_core.load_product_info()
-        generative_model, embedding_model_name, supabase = ai_core.configure_ai_models()
+        llm_config, schema_collection = ai_core.configure_ai_models()
+        print(f"[+] Modello LLM selezionato: {llm_config.provider} ({llm_config.model})")
+        print(f"[+] Provider embeddings: {llm_config.embedding_provider}")
+        print(f"[+] Archivio ChromaDB: {ai_core.get_chroma_persist_directory()}")
         print(f"[+] Info prodotto caricate: {product_info.get('nome', 'N/A')} v{product_info.get('versione', 'N/A')}")
         print("[+] Risorse caricate con successo.")
 
@@ -52,12 +58,12 @@ def main():
                     files_skipped += 1
                     continue
 
-                print("  -> Ricerca schemi pertinenti su Supabase...")
-                schema_context = ai_core.retrieve_relevant_schemas(supabase, embedding_model_name, content)
+                print("  -> Ricerca schemi pertinenti su ChromaDB...")
+                schema_context = ai_core.retrieve_relevant_schemas(schema_collection, content)
                 print("  -> Contesto recuperato. Generazione frontmatter in corso...")
-                
+
                 generated_yaml_str = ai_core.generate_frontmatter(
-                    generative_model, prompt_template, schema_context, kb_content, content, product_info
+                    llm_config, prompt_template, schema_context, kb_content, content, product_info
                 )
 
                 if not generated_yaml_str:

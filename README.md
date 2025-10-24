@@ -8,16 +8,16 @@ The script operates directly on GitHub repositories by analyzing files, generati
 
 The core of the system is based on a **Retrieval-Augmented Generation (RAG)** architecture to ensure that the AI's output is accurate, contextual, and compliant with specific standards.
 
-### **1. AI Core: Google Gemini**
+### **1. AI Core: Multi-provider LLMs**
 
-* **Generative Model**: The application uses the **Gemini 2.5 Pro** model via the Google AI API for text analysis and frontmatter block generation.  
-* **Embedding Model**: For semantic search, Google's embedding model is used to transform text into numerical vectors.
+* **Generative Models**: The application can run on **OpenAI (GPT-4o family)**, **Google Gemini (Gemini 2.5 Pro by default)**, or **Anthropic Claude (Claude 3.5 Sonnet by default)**. Select the provider via the `LLM_PROVIDER` environment variable.
+* **Embedding Models**: Vector embeddings are produced through ChromaDB's pluggable embedding functions. You can reuse the same provider selected for generation or choose another one through the `EMBEDDING_PROVIDER` variable (`google`, `openai`, or `sentence-transformers`).
 
-### **2. Retrieval: Supabase Vector DB and Schema.org**
+### **2. Retrieval: ChromaDB Vector Store and Schema.org**
 
-* **Vector Database**: To provide the AI with specific and up-to-date knowledge, the system uses a **Supabase** database with the **PostgreSQL pgvector** extension.  
-* **Schema.org Indexing**: The entire **Schema.org** vocabulary is processed, converted into vectors (embeddings), and indexed in the Supabase database.  
-* **Semantic Search**: When a Markdown file is analyzed, its content is used to perform a vector similarity search on the database. This process retrieves the most relevant Schema.org types and properties for the file's context, which are then provided to the AI.
+* **Vector Database**: All embeddings are stored in a local (or configurable) **ChromaDB** collection, which keeps the knowledge base close to the CLI without external dependencies.
+* **Schema.org Indexing**: The `indexer.py` script processes the Schema.org vocabulary, converts each class/property into embeddings, and upserts them into ChromaDB.
+* **Semantic Search**: When a Markdown file is analyzed, its content is embedded and matched against ChromaDB to retrieve the most relevant Schema.org types and properties. These snippets are then provided to the LLM as additional context.
 
 ### **3. Augmentation: Building the Context**
 
@@ -25,7 +25,7 @@ Before querying the AI, the script builds a detailed and "augmented" prompt that
 
 * A **master prompt** that defines the AI's role, objective, and output rules.  
 * A **local knowledge base** (`/knowledge_base`) containing specific documentation to contextualize the documentation being analyzed.  
-* The **data retrieved from Supabase** (the relevant Schema.org definitions).  
+* The **data retrieved from ChromaDB** (the relevant Schema.org definitions).
 * The **content of the Markdown file** to be processed.  
 * **Product information** (name and version) from a configuration file.
 
@@ -71,21 +71,22 @@ Copy the example file .env.example to a new file named .env and enter all the re
 
 You will need to fill in the following fields:
 
-* `GEMINI_API_KEY`: Your API key for Google Gemini, obtainable from [Google AI Studio](https://aistudio.google.com/app/apikey).  
-* `SUPABASE_URL`: The URL of your Supabase project.  
-* `SUPABASE_KEY`: The anon public key of your Supabase project.  
-* `GITHUB_TOKEN`: A **Personal Access Token (classic)** from GitHub.  
+* `LLM_PROVIDER`: Choose which provider to use (`gemini`, `openai`, or `claude`).
+* `GEMINI_API_KEY`: Required when using Gemini as LLM or when `EMBEDDING_PROVIDER=google`.
+* `OPENAI_API_KEY`: Required when using OpenAI as LLM or when `EMBEDDING_PROVIDER=openai`.
+* `ANTHROPIC_API_KEY`: Required when using Claude as LLM.
+* `EMBEDDING_PROVIDER` *(optional)*: Override the embedding backend. Supported values are `google`, `openai`, and `sentence-transformers`. Defaults to a sensible value based on the chosen LLM.
+* `CHROMA_DB_PATH` *(optional)*: Filesystem path where ChromaDB should persist data. Defaults to `./chroma_db` inside the project.
+* `SENTENCE_TRANSFORMER_MODEL` *(optional)*: Model name to use when `EMBEDDING_PROVIDER=sentence-transformers` (default: `all-MiniLM-L6-v2`).
+* `GITHUB_TOKEN`: A **Personal Access Token (classic)** from GitHub.
   * **Required Permissions**: Ensure you enable the entire repo scope to allow the script to clone, create forks, and open Pull Requests.
 
-### **3. Supabase Database Setup**
+### **3. ChromaDB Index Setup**
 
-1. **Create a Project**: Go to [supabase.com](https://supabase.com) and create a new project.  
-2. **Enable pgvector**: In the project dashboard, go to Database \> Extensions and enable the vector extension.  
-3. **Create the Table**: Go to SQL Editor, open a "New query", and paste and run the contents of the `supabase\_setup.sql` file provided in this project.  
-4. **Index the Knowledge Base**: Run the `indexer.py` script to populate the database. This will read the files in the `knowledge_base` folder, generate embeddings, and upload them to Supabase.  
+ChromaDB runs locally, so no external database configuration is required. To populate the vector store:
 
-
-   `python indexer.py`
+1. Ensure the environment variables for your chosen embedding provider are set (for example `EMBEDDING_PROVIDER` and the corresponding API keys).
+2. Run `python indexer.py` to parse the Schema.org knowledge base and upsert embeddings into ChromaDB. The persistent files are stored in the directory specified by `CHROMA_DB_PATH`.
 
 ### **4. Product Configuration**
 

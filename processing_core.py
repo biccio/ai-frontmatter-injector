@@ -1,7 +1,10 @@
 import os
-import ai_core
 
-def process_folder(root_path, generative_model, embedding_model_name, supabase, product_info, force=False, dry_run=False):
+import ai_core
+import file_handler
+
+
+def process_folder(root_path, llm_config, schema_collection, product_info, force=False, dry_run=False):
     """
     Logica principale per elaborare i file in una cartella locale.
     Questa funzione è riutilizzabile sia per lo script locale che per quello di GitHub.
@@ -32,12 +35,12 @@ def process_folder(root_path, generative_model, embedding_model_name, supabase, 
                 summary["skipped"] += 1
                 continue
 
-            print("  -> Ricerca schemi pertinenti su Supabase...")
-            schema_context = ai_core.retrieve_relevant_schemas(supabase, embedding_model_name, content)
+            print("  -> Ricerca schemi pertinenti su ChromaDB...")
+            schema_context = ai_core.retrieve_relevant_schemas(schema_collection, content)
             print("  -> Contesto recuperato. Generazione frontmatter in corso...")
-            
+
             generated_yaml_str = ai_core.generate_frontmatter(
-                generative_model, prompt_template, schema_context, kb_content, content, product_info
+                llm_config, prompt_template, schema_context, kb_content, content, product_info
             )
 
             if not generated_yaml_str:
