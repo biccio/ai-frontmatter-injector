@@ -119,7 +119,7 @@ def configure_ai_models() -> tuple[LLMConfig, Collection]:
             raise SystemExit("Errore: La chiave API 'GEMINI_API_KEY' non è stata trovata.")
         genai.configure(api_key=api_key)
         model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-pro")
-        client = genai.GenerativeModel(model_name)
+        llm_client = genai.GenerativeModel(model_name)
         default_embedding = "google"
 
     elif provider == "openai":
@@ -127,7 +127,7 @@ def configure_ai_models() -> tuple[LLMConfig, Collection]:
         if not api_key:
             raise SystemExit("Errore: La chiave API 'OPENAI_API_KEY' non è stata trovata.")
         model_name = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-        client = OpenAI(api_key=api_key)
+        llm_client = OpenAI(api_key=api_key)
         default_embedding = "openai"
 
     elif provider == "claude":
@@ -135,7 +135,7 @@ def configure_ai_models() -> tuple[LLMConfig, Collection]:
         if not api_key:
             raise SystemExit("Errore: La chiave API 'ANTHROPIC_API_KEY' non è stata trovata.")
         model_name = os.getenv("CLAUDE_MODEL", "claude-3-5-sonnet-20240620")
-        client = Anthropic(api_key=api_key)
+        llm_client = Anthropic(api_key=api_key)
         default_embedding = "google"
 
     else:
@@ -144,13 +144,13 @@ def configure_ai_models() -> tuple[LLMConfig, Collection]:
     embedding_provider = (embedding_override or default_embedding).strip().lower()
     embedding_function = configure_embedding_function(embedding_provider)
 
-    client = chromadb.PersistentClient(path=get_chroma_persist_directory())
-    collection = client.get_or_create_collection(
+    chroma_client = chromadb.PersistentClient(path=get_chroma_persist_directory())
+    collection = chroma_client.get_or_create_collection(
         name="schema_embeddings",
         embedding_function=embedding_function,
     )
 
-    llm_config = LLMConfig(provider=provider, client=client, model=model_name, embedding_provider=embedding_provider)
+    llm_config = LLMConfig(provider=provider, client=llm_client, model=model_name, embedding_provider=embedding_provider)
 
     return llm_config, collection
 
