@@ -90,7 +90,20 @@ def configure_embedding_function(provider: str | None = None):
             raise SystemExit("Errore: La chiave API 'GEMINI_API_KEY' è necessaria per gli embeddings di Google.")
         genai.configure(api_key=api_key)
         model_name = os.getenv("GEMINI_EMBEDDING_MODEL", "models/embedding-001")
-        return embedding_functions.GoogleGenerativeAIEmbeddingFunction(api_key=api_key, model_name=model_name)
+
+        embedding_cls = getattr(
+            embedding_functions,
+            "GoogleGenerativeAIEmbeddingFunction",
+            getattr(embedding_functions, "GoogleGenerativeAiEmbeddingFunction", None),
+        )
+
+        if embedding_cls is None:
+            raise SystemExit(
+                "Errore: La versione di ChromaDB installata non fornisce una funzione di embedding "
+                "per Google Generative AI compatibile con questa applicazione."
+            )
+
+        return embedding_cls(api_key=api_key, model_name=model_name)
 
     if provider_name == "openai":
         api_key = os.getenv("OPENAI_API_KEY")
