@@ -31,12 +31,18 @@ pip install -r requirements.txt
 ## Configuration
 ### Environment variables
 Copy `.env.example` to `.env` and fill in provider credentials.
-- `LLM_PROVIDER`: `gemini`, `openai`, or `claude`.
-- `GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`: required for the respective LLM providers.
-- `EMBEDDING_PROVIDER`: optional override (`google`, `openai`, `sentence-transformers`).
+- `LLM_PROVIDER`: `gemini`, `openai`, `openrouter`, or `claude`.
+- `GEMINI_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY`: required for the respective LLM providers.
+- `EMBEDDING_PROVIDER`: optional override (`google`, `openai`, `sentence-transformers`). The OpenRouter integration defaults to `sentence-transformers` so it can run without additional API keys.
 - `CHROMA_DB_PATH`: directory for persisted ChromaDB data (default `./chroma_db`).
 - `SENTENCE_TRANSFORMER_MODEL`: model name when using `sentence-transformers` (default `all-MiniLM-L6-v2`).
 - `GITHUB_TOKEN`: GitHub Personal Access Token with repo scope.
+
+#### OpenRouter configuration
+- `OPENROUTER_API_KEY`: required when `LLM_PROVIDER=openrouter`.
+- `OPENROUTER_MODEL`: optional override for the chat completion model (default `openrouter/auto`).
+- `OPENROUTER_APP_URL`: optional URL passed as the `HTTP-Referer` header recommended by OpenRouter.
+- `OPENROUTER_APP_NAME`: optional label sent as the `X-Title` header.
 
 ### Knowledge-base customization
 - Add or edit files under `knowledge_base/` to describe documentation rules, frontmatter blueprints, taxonomy values, or schema hints. The repository ships with a neutral `metadata_playbook.md` that defines a generic frontmatter structure and schema hints.
