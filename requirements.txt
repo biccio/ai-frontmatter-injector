@@ -8,3 +8,4 @@ anthropic
 rdflib
 PyGithub
 GitPython>=3.1.30 # Specifica una versione minima per la compatibilità
+sentence-transformers

@@ -77,6 +77,8 @@ def resolve_embedding_provider() -> str:
     llm_provider = (os.getenv("LLM_PROVIDER") or "gemini").strip().lower()
     if llm_provider == "openai":
         return "openai"
+    if llm_provider == "openrouter":
+        return "sentence-transformers"
     return "google"
 
 
@@ -143,6 +145,30 @@ def configure_ai_models() -> tuple[LLMConfig, Collection]:
         llm_client = OpenAI(api_key=api_key)
         default_embedding = "openai"
 
+    elif provider == "openrouter":
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        if not api_key:
+            raise SystemExit("Errore: La chiave API 'OPENROUTER_API_KEY' non è stata trovata.")
+        model_name = os.getenv("OPENROUTER_MODEL", "openrouter/auto")
+
+        default_headers = {}
+        referer = os.getenv("OPENROUTER_APP_URL")
+        if referer:
+            default_headers["HTTP-Referer"] = referer
+        app_name = os.getenv("OPENROUTER_APP_NAME")
+        if app_name:
+            default_headers["X-Title"] = app_name
+
+        client_kwargs = {
+            "api_key": api_key,
+            "base_url": "https://openrouter.ai/api/v1",
+        }
+        if default_headers:
+            client_kwargs["default_headers"] = default_headers
+
+        llm_client = OpenAI(**client_kwargs)
+        default_embedding = "sentence-transformers"
+
     elif provider == "claude":
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
@@ -152,7 +178,9 @@ def configure_ai_models() -> tuple[LLMConfig, Collection]:
         default_embedding = "google"
 
     else:
-        raise SystemExit(f"Errore: Provider LLM '{provider}' non supportato. Usare 'gemini', 'openai' o 'claude'.")
+        raise SystemExit(
+            f"Errore: Provider LLM '{provider}' non supportato. Usare 'gemini', 'openai', 'openrouter' o 'claude'."
+        )
 
     embedding_provider = (embedding_override or default_embedding).strip().lower()
     embedding_function = configure_embedding_function(embedding_provider)
@@ -200,7 +228,7 @@ def generate_frontmatter(llm_config: LLMConfig, prompt_template: str, schema_con
             response = llm_config.client.generate_content(final_prompt, generation_config=generation_config)
             raw_output = response.text
 
-        elif llm_config.provider == "openai":
+        elif llm_config.provider in {"openai", "openrouter"}:
             response = llm_config.client.chat.completions.create(
                 model=llm_config.model,
                 temperature=0.1,
