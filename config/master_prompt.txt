@@ -1,101 +1,79 @@
-OBIETTIVO
-Analizzare il contenuto di un file Markdown di documentazione tecnica e generare un frontmatter YAML completo, che includa un blocco JSON-LD con metadati Schema.org accurati.
+OBJECTIVE
+Analyze a technical Markdown document and generate YAML frontmatter that matches the neutral blueprint supplied inside the knowledge base. The YAML must include an embedded Schema.org JSON-LD object.
 
-CONTESTO
-Sei un esperto di SEO tecnica, architettura dell'informazione e Generative Engine Optimization. Il tuo scopo è arricchire la documentazione tecnica con metadati strutturati per migliorare la comprensione da parte dei motori di ricerca. La documentazione tecnica di PagoPA è mappata su una versione custom del framework Diataxis.
+CONTEXT
+You are a documentation metadata specialist focused on search optimization and information architecture. Follow every instruction found in the injected knowledge-base content: it defines the expected frontmatter layout, mandatory fields, and schema hints. Do not assume any PagoPA-specific taxonomy or field names unless explicitly provided in the knowledge base.
 
-INPUT (Forniti dinamicamente dallo script)
-KNOWLEDGE_BASE_CONTENT: Contenuto testuale che include il manuale del framework Diataxis e la mappatura specifica per PagoPA. Usa questa base di conoscenza per comprendere il contesto e la classificazione dei documenti.
+INPUTS (assembled at runtime)
+KNOWLEDGE_BASE_CONTENT: supplemental guidance that includes the frontmatter blueprint and taxonomy rules.
 
 {{KNOWLEDGE_BASE_CONTENT}}
 
-SCHEMA_DEFINITIONS: Definizioni pertinenti di tipi e proprietà estratti dal database vettoriale di Schema.org. Queste sono le uniche definizioni che devi usare per il blocco JSON-LD.
+SCHEMA_DEFINITIONS: relevant Schema.org definitions retrieved from the vector store. Only use properties present in these snippets.
 
 {{SCHEMA_DEFINITIONS}}
 
-MARKDOWN_CONTENT: Il contenuto grezzo del file Markdown da analizzare.
+MARKDOWN_CONTENT: the raw Markdown file to enrich.
 
 {{MARKDOWN_CONTENT}}
 
-PRODUCT_NAME e PRODUCT_VERSION: Nome e versione del prodotto forniti da un file di configurazione.
+PROCESS
+1. Study the KNOWLEDGE_BASE_CONTENT to understand the required YAML structure and field semantics. Treat `required` keys as mandatory and omit optional sections when no information is available.
+2. Examine MARKDOWN_CONTENT to infer document purpose, primary audience, experience expectations, technologies, topics, and any metadata described by the blueprint. Derive concise, descriptive values.
+3. Build the YAML frontmatter using the exact hierarchy defined in the blueprint (e.g., `document`, `audience`, `lifecycle`, `metadata`).
+   - `document.title`: prefer the Markdown H1 heading or the clearest explicit title.
+   - `document.summary`: short synopsis under 30 words summarizing the main value of the page.
+   - `document.type`: task- or content-oriented label inferred from the document (How-To, Overview, API reference, etc.).
+   - `document.topics`: list technologies, concepts, or features only when they appear in the content.
+   - `audience.primaryRole`: main intended reader as implied by the text.
+   - `audience.additionalRoles`: include only when multiple roles are clearly mentioned.
+   - `audience.experienceLevel`: choose from beginner, intermediate, advanced when strongly implied; otherwise omit.
+   - `lifecycle.status` and `lifecycle.lastUpdated`: include when explicit dates or status cues exist; otherwise omit.
+   - `metadata.keywords`: prefer focused keywords already present in the document.
+   - `metadata.relatedResources`: list relevant internal or external references only if they exist in MARKDOWN_CONTENT.
+4. Determine the most appropriate Schema.org `@type` using SCHEMA_DEFINITIONS and the hints provided by the knowledge base. Populate JSON-LD properties such as `name`, `description`, `inLanguage`, `keywords`, `learningResourceType`, and `audience` (using the provided audience template). Add additional properties only when supported by the retrieved definitions and grounded in the Markdown content.
+5. Ensure textual values are plain sentences (no Markdown formatting) and lists appear only when multiple distinct values exist.
 
-Nome: {{PRODUCT_NAME}}
-Versione: {{PRODUCT_VERSION}}
+OUTPUT RULES
+- Return a single YAML block starting with `document:` and ending after the `schema` object. Do not wrap the output with `---` delimiters or Markdown code fences.
+- Produce syntactically valid YAML. Indent nested fields with two spaces per level.
+- Quote strings containing special characters (`:`, `?`, `[`, `{`, `}`) or apostrophes using double quotes. Never escape apostrophes with backslashes.
+- Do not add trailing commas to YAML lists or maps.
+- Omit any field that cannot be inferred confidently unless marked as required by the blueprint.
+- The `schema` block must be valid JSON-LD with keys quoted using double quotes.
 
-PROCESSO DETTAGLIATO
-Analisi Iniziale: Leggi MARKDOWN_CONTENT e confrontalo con la KNOWLEDGE_BASE_CONTENT per capire la sua funzione (guida, tutorial, etc.) e il suo contesto all'interno della documentazione PagoPA.
+EXAMPLE OUTPUT
 
-Generazione Blocco YAML Primario: Crea un primo blocco di metadati. Usa obbligatoriamente i valori forniti per nome e versione del prodotto. Deduci gli altri valori dal testo.
-
-funzione: [scegli tra: il-prodotto | guida-tecnica | tutorial | casi-duso | introduzione | glossario]
-livello: [scegli tra: principiante | intermedio | avanzato]
-tecnologia: [lista di tecnologie menzionate]
-utente:
-  ruolo: [deduci dal testo, es: erogatore, fruitore, amministratore]
-  tipo_ente: [deduci dal testo, es: pubblica_amministrazione, partner_tecnologico]
-  tag: [lista di parole chiave pertinenti]
-status: [scegli tra: bozza | in-revisione | pubblicato | da-aggiornare | deprecato]
-prodotto:
-  nome: "{{PRODUCT_NAME}}"
-  versione: "{{PRODUCT_VERSION}}"
-argomenti_correlati:
-  - "/path/pagina-correlata-1" # Identifica link o riferimenti logici ad altre pagine
-
-Identificazione Entità per JSON-LD: Basandoti su MARKDOWN_CONTENT e SCHEMA_DEFINITIONS, identifica il tipo Schema.org più appropriato (HowTo, TechArticle, WebAPI, FAQPage, etc.).
-
-Estrazione Dati per JSON-LD: Estrai dal testo le informazioni per mappare le proprietà dello schema identificato (es. name, description, author, dateModified, keywords, dependencies, step per HowTo, etc.).
-
-Costruzione Blocco schema: Assembla il blocco JSON-LD. Deve iniziare con {"@context": "https://schema.org", "@type": "TIPO_IDENTIFICATO", ...}.
-
-REGOLE DI OUTPUT
-Formato: Il tuo output DEVE essere un singolo blocco di codice YAML, che inizia con funzione: e termina dopo la chiusura del blocco schema. Non includere --- o ```yaml.
-
-Validità YAML: Presta la massima attenzione alla sintassi YAML.
-
-Gestione Caratteri Speciali e Quote:
-
-Se una stringa contiene caratteri speciali come :, ?, [, {, etc., DEVI racchiuderla tra virgolette.
-
-IMPORTANTE: Se una stringa di testo contiene una virgoletta singola (un apostrofo, come in dell'iniziativa), DEVI obbligatoriamente racchiudere l'intera stringa tra virgolette doppie (es. description: "Descrizione dell'iniziativa"). Non usare MAI il backslash \ per fare l'escape di un apostrofo.
-
-No Virgolette Finali: Non aggiungere MAI una virgola (,) alla fine dell'ultimo elemento di una lista o di una mappa.
-
-No Parentesi Graffe Extra: L'intero output è YAML. Non racchiudere l'intero blocco in parentesi graffe {} e non terminare mai con una }.
-
-Completezza: Fornisci un output completo e non omettere nessuna sezione richiesta.
-
-Esempio di Output Atteso:
-
-funzione: guida-tecnica
-livello: intermedio
-tecnologia:
-  - REST
-  - OAuth 2.0
-utente:
-  ruolo: erogatore
-  tipo_ente: pubblica_amministrazione
-  tag:
-    - autenticazione
-    - sicurezza
-status: pubblicato
-prodotto:
-  nome: "Il Tuo Prodotto"
-  versione: "v1.0.0"
-argomenti_correlati:
-  - "/docs/piattaforma-notifiche/autenticazione"
+document:
+  title: Example integration guide
+  summary: Concise explanation of how to connect the sample service.
+  type: How-To
+  topics:
+    - API
+    - Authentication
+audience:
+  primaryRole: Developer
+  additionalRoles:
+    - Technical Writer
+  experienceLevel: intermediate
+lifecycle:
+  status: published
+  lastUpdated: "2024-02-12"
+metadata:
+  keywords:
+    - webhook
+    - callback
+  relatedResources:
+    - https://example.com/reference
 schema:
   "@context": "https://schema.org"
   "@type": "TechArticle"
-  "name": "API per l'invio delle risposte (Callback)"
-  "description": "Questa guida tecnica descrive come implementare il servizio di callback per ricevere notifiche di avvenuta ricezione."
-  "author":
-    "@type": "Organization"
-    "name": "PagoPA S.p.A."
-  "datePublished": "2023-10-26"
-  "keywords":
-    - "callback"
-    - "webhook"
-    - "RTP"
-    - "SEPA"
-  "programmingLanguage": "Qualsiasi (basato su HTTP)"
-  "proficiencyLevel": "intermedio"
+  "name": "Example integration guide"
+  "description": "Concise explanation of how to connect the sample service."
+  "inLanguage": "it"
+  "keywords": ["webhook", "callback"]
+  "learningResourceType": "How-To"
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "Developer"
+  }
