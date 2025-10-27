@@ -48,6 +48,7 @@ Copy `.env.example` to `.env` and fill in provider credentials.
 - Add or edit files under `knowledge_base/` to describe documentation rules, frontmatter blueprints, taxonomy values, or schema hints. The repository ships with a neutral `metadata_playbook.md` that defines a generic frontmatter structure and schema hints.
 - The runtime concatenates every non-RDF file into the prompt, allowing different clients to provide their own configuration bundles.
 - To change behaviour for a specific deployment, replace the knowledge-base directory or inject additional files before running the CLI.
+- See [docs/customization_manual.md](docs/customization_manual.md) for a step-by-step guide to tailoring the knowledge base and master prompt.
 
 ### Schema.org index
 Populate the ChromaDB collection with Schema.org entries:
