@@ -1,5 +1,4 @@
 import os
-import json
 import yaml
 from dataclasses import dataclass
 from pathlib import Path
@@ -36,19 +35,6 @@ def load_prompt_and_knowledge_base() -> tuple[str, str]:
         return prompt_template, knowledge_base_content.strip()
     except FileNotFoundError as e:
         raise SystemExit(f"Errore: File di configurazione non trovato. Controlla che il percorso sia corretto.\nDettagli: {e}")
-
-def load_product_info() -> dict:
-    """Carica le informazioni sul prodotto dal file JSON di configurazione."""
-    script_dir = Path(__file__).resolve().parent
-    product_info_path = script_dir / "config" / "product_info.json"
-    if not product_info_path.exists():
-        return {"nome": "N/A", "versione": "N/A"}
-    try:
-        with open(product_info_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (json.JSONDecodeError, FileNotFoundError):
-        return {"nome": "N/A", "versione": "N/A"}
-
 
 # --- Funzioni di Configurazione AI e Vector Store ---
 
@@ -214,13 +200,17 @@ def retrieve_relevant_schemas(collection: Collection, query_text: str) -> str:
 
 
 # --- Funzione di Generazione ---
-def generate_frontmatter(llm_config: LLMConfig, prompt_template: str, schema_context: str, kb_content: str, content: str, product_info: dict) -> str | None:
+def generate_frontmatter(
+    llm_config: LLMConfig,
+    prompt_template: str,
+    schema_context: str,
+    kb_content: str,
+    content: str,
+) -> str | None:
     """Genera il frontmatter usando il provider LLM selezionato."""
     final_prompt = prompt_template.replace("{{KNOWLEDGE_BASE_CONTENT}}", kb_content)
     final_prompt = final_prompt.replace("{{SCHEMA_DEFINITIONS}}", schema_context)
     final_prompt = final_prompt.replace("{{MARKDOWN_CONTENT}}", content)
-    final_prompt = final_prompt.replace("{{PRODUCT_NAME}}", product_info.get("nome", "N/A"))
-    final_prompt = final_prompt.replace("{{PRODUCT_VERSION}}", product_info.get("versione", "N/A"))
 
     try:
         if llm_config.provider == "gemini":

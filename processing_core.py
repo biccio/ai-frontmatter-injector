@@ -4,7 +4,7 @@ import ai_core
 import file_handler
 
 
-def process_folder(root_path, llm_config, schema_collection, product_info, force=False, dry_run=False):
+def process_folder(root_path, llm_config, schema_collection, force=False, dry_run=False):
     """
     Logica principale per elaborare i file in una cartella locale.
     Questa funzione è riutilizzabile sia per lo script locale che per quello di GitHub.
@@ -40,7 +40,7 @@ def process_folder(root_path, llm_config, schema_collection, product_info, force
             print("  -> Contesto recuperato. Generazione frontmatter in corso...")
 
             generated_yaml_str = ai_core.generate_frontmatter(
-                llm_config, prompt_template, schema_context, kb_content, content, product_info
+                llm_config, prompt_template, schema_context, kb_content, content
             )
 
             if not generated_yaml_str:
