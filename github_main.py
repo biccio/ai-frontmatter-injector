@@ -9,7 +9,7 @@ from pathlib import Path
 import datetime
 
 # --- FUNZIONE AGGIORNATA per tracciare i file modificati ---
-def process_folder(root_path, llm_config, schema_collection, product_info, force):
+def process_folder(root_path, llm_config, schema_collection, force):
     """
     Scansiona una cartella, elabora ogni file Markdown e restituisce un riepilogo
     e la lista dei percorsi dei file effettivamente aggiornati.
@@ -52,7 +52,6 @@ def process_folder(root_path, llm_config, schema_collection, product_info, force
                 schema_context=schema_context,
                 kb_content=kb_content,
                 content=content,
-                product_info=product_info
             )
 
             if not generated_yaml:
@@ -129,7 +128,6 @@ def main():
         processing_path = os.path.join(temp_dir, args.folder) if args.folder != "." else temp_dir
 
         print("\n[+] Caricamento risorse e avvio elaborazione file AI...")
-        product_info = ai_core.load_product_info()
         llm_config, schema_collection = ai_core.configure_ai_models()
         print(f"[+] Modello LLM selezionato: {llm_config.provider} ({llm_config.model})")
         print(f"[+] Provider embeddings: {llm_config.embedding_provider}")
@@ -140,7 +138,6 @@ def main():
             root_path=processing_path,
             llm_config=llm_config,
             schema_collection=schema_collection,
-            product_info=product_info,
             force=args.force
         )
 

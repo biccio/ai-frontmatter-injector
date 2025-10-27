@@ -27,12 +27,10 @@ def main():
     try:
         print("[+] Caricamento risorse e configurazione AI...")
         prompt_template, kb_content = ai_core.load_prompt_and_knowledge_base()
-        product_info = ai_core.load_product_info()
         llm_config, schema_collection = ai_core.configure_ai_models()
         print(f"[+] Modello LLM selezionato: {llm_config.provider} ({llm_config.model})")
         print(f"[+] Provider embeddings: {llm_config.embedding_provider}")
         print(f"[+] Archivio ChromaDB: {ai_core.get_chroma_persist_directory()}")
-        print(f"[+] Info prodotto caricate: {product_info.get('nome', 'N/A')} v{product_info.get('versione', 'N/A')}")
         print("[+] Risorse caricate con successo.")
 
         markdown_files = file_handler.scan_markdown_files(Path(args.path))
@@ -63,7 +61,7 @@ def main():
                 print("  -> Contesto recuperato. Generazione frontmatter in corso...")
 
                 generated_yaml_str = ai_core.generate_frontmatter(
-                    llm_config, prompt_template, schema_context, kb_content, content, product_info
+                    llm_config, prompt_template, schema_context, kb_content, content
                 )
 
                 if not generated_yaml_str:
