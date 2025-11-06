@@ -8,6 +8,24 @@ The AI Frontmatter Injector is a Python CLI that enriches Markdown documentation
 - **Automated GitHub workflow** that clones repositories, runs frontmatter injection, and optionally opens Pull Requests.
 
 ## How it works
+
+```mermaid
+graph TD
+    A[Schema.org RDF] -->|Indexer| B[ChromaDB]
+    C[Knowledge Base] -->|Configuration| D[Prompt Assembly]
+    E[Master Prompt Template] -->|Workflow| D
+    F[Markdown Files] -->|Content| D
+    B -->|Schema Retrieval| D
+    D -->|LLM Processing| G[YAML Frontmatter + JSON-LD]
+    G -->|GitHub Integration| H[Commit & Pull Request]
+
+    style B fill:#e1f5ff
+    style D fill:#fff4e1
+    style G fill:#e8f5e9
+    style H fill:#f3e5f5
+</mermaid>
+
+### Detailed workflow
 1. `indexer.py` ingests Schema.org definitions into a local ChromaDB collection for semantic retrieval.
 2. `knowledge_base/` files (Markdown, YAML, JSON) describe domain-specific rules—such as frontmatter blueprints or allowed taxonomies—that are injected into the master prompt through the `{{KNOWLEDGE_BASE_CONTENT}}` placeholder.
 3. `config/master_prompt.txt` defines the AI workflow. The provided template expects the placeholders `{{KNOWLEDGE_BASE_CONTENT}}`, `{{SCHEMA_DEFINITIONS}}`, and `{{MARKDOWN_CONTENT}}`. Customize the knowledge base to change field layouts without touching the prompt.
