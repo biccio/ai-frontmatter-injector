@@ -23,7 +23,7 @@ graph TD
     style D fill:#fff4e1
     style G fill:#e8f5e9
     style H fill:#f3e5f5
-</mermaid>
+```
 
 ### Detailed workflow
 1. `indexer.py` ingests Schema.org definitions into a local ChromaDB collection for semantic retrieval.
