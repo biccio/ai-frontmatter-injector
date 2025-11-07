@@ -50,7 +50,8 @@ def parse_schema_org_rdf(file_path: Path) -> dict:
         class_name = class_uri.replace("https://schema.org/", "")
         
         # Ignoriamo tipi di dati (es. Text, Number) che non sono veri schemi
-        if class_name[0].islower():
+        # Ignoriamo anche stringhe vuote per evitare IndexError
+        if not class_name or class_name[0].islower():
             continue
             
         schemas[class_name] = {

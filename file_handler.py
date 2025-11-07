@@ -22,11 +22,20 @@ def update_file_with_frontmatter(file_path: Path, new_frontmatter_data: dict, fo
             post = frontmatter.load(f)
 
         # Controlla se il file ha già metadati e se non si sta forzando la sovrascrittura
-        if post.metadata and not force:
+        # Nota: post.metadata è sempre un dict, ma potrebbe essere vuoto {}
+        if post.metadata is not None and len(post.metadata) > 0 and not force:
             print(f"  -> File già con frontmatter. Saltato (usa --force per sovrascrivere).")
             return False
 
         # Unisce i vecchi metadati (se presenti) con i nuovi
+        # NOTA: update() sovrascrive i valori esistenti con quelli nuovi.
+        # Se si desidera preservare alcuni campi specifici, decommentare il codice seguente:
+        #
+        # preserved_fields = ['author', 'date', 'custom_field']  # Campi da preservare
+        # preserved_data = {k: post.metadata[k] for k in preserved_fields if k in post.metadata}
+        # post.metadata.update(new_frontmatter_data)
+        # post.metadata.update(preserved_data)  # Ripristina campi preservati
+
         post.metadata.update(new_frontmatter_data)
 
         # Convertiamo esplicitamente il post in una stringa prima di scrivere
