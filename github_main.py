@@ -1,9 +1,10 @@
 import argparse
 import os
 from dotenv import load_dotenv
+from github import GithubException
 import ai_core
 import git_handler
-import file_handler 
+import file_handler
 import sys
 from pathlib import Path
 import datetime
@@ -108,8 +109,17 @@ def main():
         try:
             upstream_repo.get_branch(source_branch)
             print(f"  -> Branch '{source_branch}' trovato.")
-        except Exception:
-            raise SystemExit(f"Errore: Il branch '{source_branch}' non è stato trovato nel repository '{args.repo}'.")
+        except GithubException as e:
+            if e.status == 404:
+                raise SystemExit(f"Errore: Il branch '{source_branch}' non è stato trovato nel repository '{args.repo}'.")
+            elif e.status == 403:
+                raise SystemExit(f"Errore: Accesso negato al repository '{args.repo}'. Verifica il token GitHub e i permessi.")
+            elif e.status == 401:
+                raise SystemExit(f"Errore: Token GitHub non valido o scaduto.")
+            else:
+                raise SystemExit(f"Errore GitHub ({e.status}): {e.data.get('message', str(e))}")
+        except Exception as e:
+            raise SystemExit(f"Errore imprevisto durante la verifica del branch: {e}")
         
         is_fork = not handler.has_push_access(upstream_repo)
         fork_url = None
@@ -147,11 +157,18 @@ def main():
 
         print("\n[+] Finalizzazione delle modifiche su Git...")
         # --- CHIAMATA AGGIORNATA ---
-        if handler.commit_and_push(temp_dir, branch_name, commit_message, updated_files, fork_url=fork_url):
+        commit_success = handler.commit_and_push(temp_dir, branch_name, commit_message, updated_files, fork_url=fork_url)
+
+        if commit_success:
             handler.create_pull_request(
-                upstream_repo=upstream_repo, head_branch=branch_name, 
+                upstream_repo=upstream_repo, head_branch=branch_name,
                 base_branch=source_branch, title=pr_title, body=pr_body, is_fork=is_fork
             )
+        else:
+            print("\n[!] ERRORE: Il commit e push sono falliti. Impossibile creare la Pull Request.")
+            print(f"[!] Le modifiche sono state applicate localmente in: {temp_dir}")
+            print("[!] Puoi tentare di risolvere manualmente o rieseguire il processo.")
+            raise SystemExit("Processo terminato con errori durante il commit/push.")
 
     except SystemExit as e:
         print(f"\nERRORE CRITICO: {e}")
